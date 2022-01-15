@@ -54,4 +54,4 @@ Licensed under either of
 at your option.
 
 
-[GAT]: https://www.google.com.hk/search?client=firefox-b-d&q=rust+GAT
+[GAT]: https://github.com/rust-lang/rust/issues/44265
