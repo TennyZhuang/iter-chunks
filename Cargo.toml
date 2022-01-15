@@ -8,6 +8,7 @@ readme = "README.md"
 homepage = "https://github.com/TennyZhuang/iter-chunks"
 repository = "https://github.com/TennyZhuang/iter-chunks"
 keywords = ["iterator"]
+documentation = "https://docs.rs/iter-chunks/latest/iter_chunks/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
