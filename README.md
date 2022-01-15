@@ -34,6 +34,20 @@ while let Some(chunk) = chunks.next() {
 
 [itertools](https://crates.io/crates/itertools) provides many awesome extensions, including [`chunks`](https://docs.rs/itertools/0.10.3/itertools/trait.Itertools.html#method.chunks). It's really useful, but it use `RefCell` internally, causing it's not `Send`.
 
+It's a very common usecase in async context, which requires `Chunks` to be `Send`:
+
+```rust
+async fn do_some_work(input: impl Iterator<Item = i32>) {
+    for chunk in input.chunks(1024) {
+        for v in chunk {
+            handle(v).await
+        }
+        do_some_flush().await
+    }
+}
+```
+
+
 This crate implements `chunks` without `RefCell`, so `Chunks` is both Send and Sync. As a price, `Chunks` cannot implements `Iterator` (which can be resolved later by [GAT][GAT] and LendingIterator).
 
 ## Future works
