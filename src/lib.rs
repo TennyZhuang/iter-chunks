@@ -1,0 +1,182 @@
+use std::iter::Iterator;
+
+/// A trait that extends [`Iterator`] with `chunks` method.
+pub trait IterChunks: Sized + Iterator {
+    /// Create an iterator-liked struct that yields elements by chunk every n
+    /// elements, or fewer if the underlying iterator ends sooner.
+    ///
+    /// [`Chunks`] is not a real Iterator, but a LendingIterator, which is
+    /// currently not in std and blocked by GAT. We have to iterate with
+    /// while loop now.
+    ///
+    /// ```
+    /// use iter_chunks::IterChunks;
+    ///
+    /// let arr = [1, 1, 2, 2, 3];
+    /// let expected = [vec![1, 1], vec![2, 2], vec![3]];
+    /// let mut chunks = arr.into_iter().chunks(2);
+    /// let mut i = 0;
+    /// while let Some(chunk) = chunks.next() {
+    ///     assert_eq!(chunk.collect::<Vec<_>>(), expected[i]);
+    ///     i += 1;
+    /// }
+    /// ```
+    fn chunks(self, n: usize) -> Chunks<Self>;
+}
+
+impl<I> IterChunks for I
+where
+    I: Iterator,
+{
+    fn chunks(self, n: usize) -> Chunks<Self> {
+        assert_ne!(n, 0);
+        Chunks {
+            inner: self,
+            n,
+            end_flag: false,
+        }
+    }
+}
+
+/// An iterator-like struct that yields chunks.
+///
+/// This `struct` is created by [`chunks`] method on [`IterChunks`]. See its
+/// documentation for more.
+///
+/// [`chunks`]: IterChunks::chunks
+pub struct Chunks<I: Iterator> {
+    inner: I,
+    n: usize,
+    end_flag: bool,
+}
+
+impl<I: Iterator> Chunks<I> {
+    /// Similar to [`Iterator::next`], but not implements [`Iterator`] due to
+    /// lifetime.
+    ///
+    /// The underlying iterator implementations may choose to resume iteration
+    /// after finished, so calling `Chunks::next` may also return `Some(Chunk)`
+    /// after returning `None`.
+    pub fn next(&mut self) -> Option<Chunk<'_, I>> {
+        if self.end_flag {
+            // The inner iterator may be resumable.
+            self.end_flag = false;
+            None
+        } else {
+            let n = self.n;
+            Some(Chunk { parent: self, n })
+        }
+    }
+}
+
+/// An iterator over a chunk of data.
+///
+/// Unlike [`Chunks`], `Chuuk` implements `Iterator` and can be used in for
+/// loop.
+///
+/// This `struct` is created by [`Chunks::next`].
+pub struct Chunk<'a, I: Iterator> {
+    parent: &'a mut Chunks<I>,
+    n: usize,
+}
+
+impl<'a, I> Iterator for Chunk<'a, I>
+where
+    I: Iterator,
+{
+    type Item = <I as Iterator>::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.n > 0 {
+            self.n -= 1;
+            match self.parent.inner.next() {
+                Some(v) => Some(v),
+                None => {
+                    // The current chunk iterator should output None and end forever.
+                    self.n = 0;
+
+                    // The parent chunks iterator should output None once.
+                    self.parent.end_flag = true;
+
+                    None
+                }
+            }
+        } else {
+            None
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::IterChunks;
+
+    #[test]
+    fn test_impls() {
+        let chunks = [0i32].into_iter().chunks(1);
+
+        // A helper function that asserts a type impl Send.
+        fn assert_send<T: Send>(_: &T) {}
+        // A helper function that asserts a type impl Sync.
+        fn assert_sync<T: Sync>(_: &T) {}
+
+        assert_sync(&chunks);
+        assert_send(&chunks);
+    }
+
+    #[test]
+    fn test_chunks() {
+        let arr = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3];
+        let mut i = 0;
+        let mut chunks = arr.into_iter().chunks(3);
+
+        while let Some(chunk) = chunks.next() {
+            for v in chunk {
+                assert_eq!(v, i);
+            }
+            i += 1;
+        }
+        assert_eq!(i, 4);
+    }
+
+    #[test]
+    fn test_chunk_resumable() {
+        let inner_gen = |rem| {
+            let mut i = 0;
+            std::iter::from_fn(move || {
+                i += 1;
+                if i % rem == 0 {
+                    None
+                } else {
+                    Some(i)
+                }
+            })
+        };
+
+        let inner = inner_gen(3);
+        let mut chunks = inner.chunks(4);
+        while let Some(chunk) = chunks.next() {
+            assert_eq!(chunk.collect::<Vec<_>>(), vec![1, 2]);
+        }
+        while let Some(chunk) = chunks.next() {
+            assert_eq!(chunk.collect::<Vec<_>>(), vec![4, 5]);
+        }
+        while let Some(chunk) = chunks.next() {
+            assert_eq!(chunk.collect::<Vec<_>>(), vec![7, 8]);
+        }
+
+        let inner = inner_gen(6);
+        let mut chunks = inner.chunks(4);
+
+        assert_eq!(chunks.next().unwrap().collect::<Vec<_>>(), vec![1, 2, 3, 4]);
+        assert_eq!(chunks.next().unwrap().collect::<Vec<_>>(), vec![5]);
+        assert!(chunks.next().is_none());
+
+        assert_eq!(
+            chunks.next().unwrap().collect::<Vec<_>>(),
+            vec![7, 8, 9, 10]
+        );
+        assert_eq!(chunks.next().unwrap().collect::<Vec<_>>(), vec![11]);
+        assert!(chunks.next().is_none());
+    }
+}
