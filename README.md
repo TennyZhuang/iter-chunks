@@ -34,11 +34,11 @@ while let Some(chunk) = chunks.next() {
 
 [itertools](https://crates.io/crates/itertools) provides many awesome extensions, including [`chunks`](https://docs.rs/itertools/0.10.3/itertools/trait.Itertools.html#method.chunks). It's really useful, but it use `RefCell` internally, causing it's not `Send`.
 
-This crate implements `chunks` without `RefCell`, so `Chunks` is both Send and Sync. As a price, `Chunks` cannot implements `Iterator` (which can be resolved later by [GAT](https://www.google.com.hk/search?client=firefox-b-d&q=rust+GAT) and LendingIterator).
+This crate implements `chunks` without `RefCell`, so `Chunks` is both Send and Sync. As a price, `Chunks` cannot implements `Iterator` (which can be resolved later by [GAT](GAT) and LendingIterator).
 
 ## Future works
 
-The lack of the `Iterator` implementation is very difficult to use, and the best solution is to wait for the GAT and a suitable LendingIterator crate. But in the short term, we can consider providing some common methods such as `nth`, `for_each`, `try_for_each`, and so on.
+The lack of the `Iterator` implementation is very difficult to use, and the best solution is to wait for [GAT](GAT) and a suitable LendingIterator crate. But in the short term, we can consider providing some common methods such as `nth`, `for_each`, `try_for_each`, and so on.
 
 Contributions are welcome.
 
@@ -52,3 +52,6 @@ Licensed under either of
    ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
+
+
+[GAT]: https://www.google.com.hk/search?client=firefox-b-d&q=rust+GAT
