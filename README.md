@@ -48,7 +48,7 @@ async fn do_some_work(input: impl Iterator<Item = i32>) {
 ```
 
 
-This crate implements `chunks` without `RefCell`, so `Chunks` is both Send and Sync. As a price, `Chunks` cannot implements `Iterator` (which can be resolved later by [GAT][GAT] and LendingIterator).
+This crate implements `chunks` without `RefCell`, so `Chunks` is both Send and Sync. As a price, `Chunks` cannot implement `Iterator` (which can be resolved later by [GAT][GAT] and LendingIterator).
 
 ## Future works
 
