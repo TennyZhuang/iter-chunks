@@ -67,6 +67,22 @@ impl<I: Iterator> Chunks<I> {
             Some(Chunk { parent: self, n })
         }
     }
+
+    /// Similar to [`Iterator::for_each`].
+    ///
+    /// ```
+    /// use iter_chunks::IterChunks;
+    ///
+    /// let arr = [1, 4, 2, 3, 5];
+    /// arr.into_iter().chunks(2).for_each(|chunk| {
+    ///     assert_eq!(chunk.sum::<i32>(), 5);
+    /// });
+    /// ```
+    pub fn for_each(&mut self, mut f: impl FnMut(Chunk<'_, I>)) {
+        while let Some(item) = self.next() {
+            f(item)
+        }
+    }
 }
 
 /// An iterator over a chunk of data.
