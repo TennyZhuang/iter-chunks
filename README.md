@@ -10,7 +10,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-iter_chunks = "0.1"
+iter-chunks = "0.1"
 ```
 
 ## Examples
