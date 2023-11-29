@@ -32,7 +32,7 @@ while let Some(chunk) = chunks.next() {
 
 ## Why create this crate?
 
-[itertools](https://crates.io/crates/itertools) provides many awesome extensions, including [`chunks`](https://docs.rs/itertools/0.10.3/itertools/trait.Itertools.html#method.chunks). It's really useful, but it use `RefCell` internally, causing it's not `Send`.
+[itertools](https://crates.io/crates/itertools) provides many awesome extensions, including [`chunks`](https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.chunks). It's really useful, but it use `RefCell` internally, causing it's not `Send`.
 
 It's a very common usecase in async context, which requires `Chunks` to be `Send`:
 
