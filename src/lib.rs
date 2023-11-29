@@ -63,8 +63,17 @@ impl<I: Iterator> Chunks<I> {
             self.end_flag = false;
             None
         } else {
-            let n = self.n;
-            Some(Chunk { parent: self, n })
+            match self.inner.next() {
+                Some(v) => {
+                    let n = self.n;
+                    Some(Chunk {
+                        first: Some(v),
+                        parent: self,
+                        n: n - 1,
+                    })
+                }
+                None => None,
+            }
         }
     }
 
@@ -92,6 +101,7 @@ impl<I: Iterator> Chunks<I> {
 ///
 /// This `struct` is created by [`Chunks::next`].
 pub struct Chunk<'a, I: Iterator> {
+    first: Option<I::Item>,
     parent: &'a mut Chunks<I>,
     n: usize,
 }
@@ -103,22 +113,24 @@ where
     type Item = <I as Iterator>::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.n > 0 {
-            self.n -= 1;
-            match self.parent.inner.next() {
-                Some(v) => Some(v),
-                None => {
-                    // The current chunk iterator should output None and end forever.
-                    self.n = 0;
+        match self.first.take() {
+            Some(v) => Some(v),
+            None if self.n > 0 => {
+                self.n -= 1;
+                match self.parent.inner.next() {
+                    Some(v) => Some(v),
+                    None => {
+                        // The current chunk iterator should output None and end forever.
+                        self.n = 0;
 
-                    // The parent chunks iterator should output None once.
-                    self.parent.end_flag = true;
+                        // The parent chunks iterator should output None once.
+                        self.parent.end_flag = true;
 
-                    None
+                        None
+                    }
                 }
             }
-        } else {
-            None
+            None => None,
         }
     }
 }
@@ -194,5 +206,28 @@ mod tests {
         );
         assert_eq!(chunks.next().unwrap().collect::<Vec<_>>(), vec![11]);
         assert!(chunks.next().is_none());
+    }
+
+    #[test]
+    fn test_chunks_count() {
+        let arr: [bool; 0] = [];
+        let mut i = 0;
+        let mut chunks = arr.into_iter().chunks(3);
+
+        while let Some(chunk) = chunks.next() {
+            for _ in chunk {}
+            i += 1;
+        }
+        assert_eq!(i, 0);
+
+        let arr: [bool; 3] = [false; 3];
+        let mut i = 0;
+        let mut chunks = arr.into_iter().chunks(3);
+
+        while let Some(chunk) = chunks.next() {
+            for _ in chunk {}
+            i += 1;
+        }
+        assert_eq!(i, 1);
     }
 }
