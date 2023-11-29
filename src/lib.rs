@@ -57,6 +57,7 @@ impl<I: Iterator> Chunks<I> {
     /// The underlying iterator implementations may choose to resume iteration
     /// after finished, so calling `Chunks::next` may also return `Some(Chunk)`
     /// after returning `None`.
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<Chunk<'_, I>> {
         if self.end_flag {
             // The inner iterator may be resumable.
