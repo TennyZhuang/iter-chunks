@@ -137,10 +137,10 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (lower, upper) = self.parent.inner.size_hint();
-        // SAFETY: `checked_add` is unnecessary here since n is always less than
-        // `usize::MAX`.
         let has_first = self.first.is_some() as usize;
         let n = self.n;
+        // SAFETY: `checked_add` is unnecessary here since n is always less than
+        // `usize::MAX`.
         let lower = lower.min(n) + has_first;
         let upper = upper.map(|v| v.min(n) + has_first);
         (lower, upper)
