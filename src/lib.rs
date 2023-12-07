@@ -134,6 +134,17 @@ where
             None => None,
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (lower, upper) = self.parent.inner.size_hint();
+        let has_first = self.first.is_some() as usize;
+        let n = self.n;
+        // SAFETY: `checked_add` is unnecessary here since n is always less than
+        // `usize::MAX`.
+        let lower = lower.min(n) + has_first;
+        let upper = upper.map(|v| v.min(n) + has_first);
+        (lower, upper)
+    }
 }
 
 #[cfg(test)]
@@ -230,5 +241,33 @@ mod tests {
             i += 1;
         }
         assert_eq!(i, 1);
+    }
+
+    #[test]
+    fn test_size_hint() {
+        let iter = [1, 2, 3, 4]
+            .into_iter()
+            .chain([5, 6, 7].into_iter().filter(|_| true));
+        let (lower, upper) = iter.size_hint();
+        assert_eq!(lower, 4);
+        assert_eq!(upper, Some(7));
+        let mut chunks = iter.chunks(3);
+
+        let mut chunk1 = chunks.next().unwrap();
+
+        assert_eq!(chunk1.size_hint(), (3, Some(3)));
+        chunk1.next().unwrap();
+        assert_eq!(chunk1.size_hint(), (2, Some(2)));
+
+        for _ in chunk1 {}
+
+        let chunk2 = chunks.next().unwrap();
+        assert_eq!(chunk2.size_hint(), (1, Some(3)));
+        for _ in chunk2 {}
+
+        let mut chunk3 = chunks.next().unwrap();
+        assert_eq!(chunk3.size_hint(), (1, Some(1)));
+        chunk3.next().unwrap();
+        assert_eq!(chunk3.size_hint(), (0, Some(0)));
     }
 }
