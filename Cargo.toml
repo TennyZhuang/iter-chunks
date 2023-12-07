@@ -1,6 +1,6 @@
 [package]
 name = "iter-chunks"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 description = "Extend Iterator with chunks"
 license = "MIT OR Apache-2.0"
