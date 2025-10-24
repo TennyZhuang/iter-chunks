@@ -2,13 +2,15 @@
 name = "iter-chunks"
 version = "0.2.2"
 edition = "2024"
+rust-version = "1.85"
 description = "Extend Iterator with chunks"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/TennyZhuang/iter-chunks"
 repository = "https://github.com/TennyZhuang/iter-chunks"
-keywords = ["iterator"]
+keywords = ["iterator", "chunks", "lending"]
 documentation = "https://docs.rs/iter-chunks/latest/iter_chunks/"
+categories = ["algorithms", "data-structures"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

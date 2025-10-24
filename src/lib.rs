@@ -5,9 +5,9 @@ pub trait IterChunks: Sized + Iterator {
     /// Create an iterator-liked struct that yields elements by chunk every n
     /// elements, or fewer if the underlying iterator ends sooner.
     ///
-    /// [`Chunks`] is not a real Iterator, but a LendingIterator, which is
-    /// currently not in std and blocked by GAT. We have to iterate with
-    /// while loop now.
+    /// [`Chunks`] is not a real Iterator, but a lending iterator, which still
+    /// lacks a stable trait in `std`. We have to iterate with a `while` loop
+    /// for now.
     ///
     /// ```
     /// use iter_chunks::IterChunks;
